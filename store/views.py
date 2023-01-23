@@ -364,7 +364,7 @@ def createAddress(request):
     context={'profile':profile}                                 
     return render(request,'add_address.html',context)
 
-@csrf_exempt
+
 def profilepic(request):
     user=request.user
     if request.method == 'POST':
