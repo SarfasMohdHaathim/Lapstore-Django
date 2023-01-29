@@ -9,6 +9,19 @@
 
 
 		<div class="colorlib-loader"></div>
+		{% if messages %}
+													
+															
+															 
+															
+														
+		{% for message in messages %}
+		<div class="alert alert-primary" style="display: none;"
+			id="couponUsed" role="alert">
+			{{ message }} 
+		</div>
+		{% endfor %}
+		{% endif %}
 
 		<div id="page">
 			<div class="breadcrumbs">
@@ -22,6 +35,7 @@
 					</div>
 				</div>
 			</div>
+
 			<div class="colorlib-product">
 				<div class="container">
 					<div class="container mt-5 ">
@@ -177,17 +191,18 @@
 											<hr>
 											<ul>
 												<li>
-													<strong><span>Subtotal</span> <span>
-															{{famount}}
+													<strong><span>Total Items</span> <span>
+															{{i}} Items 
 														</span></strong>
 													<ul>
 														{% for c in cart %}
 															<li><span>
-																	{{c.quantity}} x {{c.Lap_name}}
+																	  {{c.Lap_name}}
 																</span> <span>
-																{{c.Lap_name.discounted_price}}+ {{c.quantity}}
+																{{c.Lap_name.discounted_price}}   ({{c.quantity}} Items)
 																</span></li>
-															<!-- <li><span>1 x Product Name</span> <span>RS.0.00</span></li> -->
+															
+															<!-- <li><span>1 x </span> <span>RS.0.00</span></li> -->
 															{% endfor %}
 													</ul>
 												</li>
@@ -198,11 +213,8 @@
 														0</span></li>
 														{% endif %}
 												<li><strong><span>Order Total</span> <span id="totalOriginal">
-													{% if coupon_amount %}
-													{{coupon_amount}}
-													{% else %}
+													
 													{{famount}}
-													{% endif %}
 														</span></strong></li>
 											
 											</ul>
@@ -210,7 +222,7 @@
 											<div class="your-order-bottom">
 												<div class="discount-code">
 													<!-- Button trigger modal -->
-													{% if coupon_dic %}
+													{% if coupon %}
 													<button type="button" class="btn btn-link float-end"
 														data-toggle="modal" data-target="#exampleModalCenter">
 														Get New Coupon
@@ -220,7 +232,7 @@
 
 
 
-													<form action="{% url 'coupon_validation' %}" method="post">
+													<form action="{% url 'checkout' %}" method="post">
 														{% csrf_token %}
 													<input type="text" class="form-control" name="coupon"
 														id="couponInput" autocapitalize="on"/>
@@ -230,24 +242,15 @@
 													<input type="submit"
 														class="btn bg-success text-white text-center  mt-2"
 														style="width: 100%;text-decoration: none;">
-														{% if messages %}
-<ul class="messages">
-    {% for message in messages %}
-    <li> {{ message }} </li>
-    {% endfor %}
-</ul>
-{% endif %}
+
 														</input>
 
 													</form>
 
 													<div class="mt-2">
 
-														<!-- <div class="alert alert-danger" style="display: none;"
-															id="couponUsed" role="alert">
-															This Coupon was redeemed
-														</div>
-														<div class="alert alert-danger" style="display: none;"
+
+														 <!-- <div class="alert alert-danger" style="display: none;"
 															id="couponInvalid" role="alert">
 															This Coupon is
 															invalid
@@ -293,8 +296,8 @@
 													</button>
 
 												</div>
-												
-												{% for coupon_dic in coupon_dic %}
+												{%if coupon %}
+												{% for coupon_dic in coupon %}
 													<div class="modal-body">
 														<div class="row ">
 															<div class="col-12 ">
@@ -308,17 +311,16 @@
 																			{{coupon_dic.amount}}
 																				
 																			</strong> Discount for this Coupon</p>
-																		<p> Is Expired  : {{coupon_dic.is_expired}}
+																		<p> Is Expired  : In 78 days@
 																		</p>
-																		<button type="button"
-																			onclick="copyFunction('<%=x._id%>')"
-																			class="btn btn-primary copy-button">Copy</button>
+																		
 																	</div>
 																</div>
 															</div>
 														</div>
 													</div>
 													{% endfor %}
+													{% endif %}
 													
 														<div class="modal-footer"></div>
 

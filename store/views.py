@@ -6,6 +6,7 @@ from .forms import CustomUserCreationForm
 from django.contrib import messages
 from django.conf import settings
 import razorpay
+from django.db.models import Q
 
 
 def signup(request):
@@ -423,7 +424,23 @@ def coupon_validation(request):
         except:
             messages.warning(request,"Invalid Coupon")
             return redirect('checkout')
-           
+
+
+
+
+    # q = request.GET.get('q') if request.GET.get('q') != None else ''
+
+    # rooms = Room.objects.filter(
+    #     Q(topic__name__icontains=q) |
+    #     Q(name__icontains=q) |
+    #     Q(description__icontains=q)
+    # )
+
+
+
+
+
+    
     username=User.objects.get(username=user)
     coupon_dic=Coupon.objects.all()
     print(coupon_dic)           
@@ -452,10 +469,19 @@ def orderplaced(request):
 
 
 def checkout(request):
+    coupon=''
+    c_amount=0
     
     if request.user:
         profile=Profile.objects.filter(user=request.user) 
         cart=Cart.objects.filter(user=request.user)
+        try:
+            coupon=Coupon.objects.filter(
+            Q(user=request.user) &
+            Q(is_expired=0))
+            print(coupon,"===========000000000000=======")  
+        except:
+            print('you dont have')
         
 
         amount=0
@@ -470,15 +496,45 @@ def checkout(request):
 
     cart=Cart.objects.filter(user=user)
     famount=0
+    i=0
     for c in cart:
         value=c.quantity * c.Lap_name.discounted_price
         famount=famount+value
+        i+=1
+    if request.method =='POST':
+        coupon=request.POST.get('coupon')
+        try:
+            coupon_obj=Coupon.objects.get(code=coupon)
+            if coupon_obj.is_expired == 1:
+                messages.warning(request,"Coupon Expire")
+                flag=1
+                return redirect('checkout')
+
+            else:
+                coupon_obj.is_expired=1
+                c_amount=coupon_obj.amount
+                famount=famount-c_amount
+                print(famount,'0000000====famount======-----')
+
+                coupon_obj.save()
+                messages.success(request,"Coupon Applied")
+                
+
+        except:
+            messages.warning(request,"Invalid Coupon")
+            return redirect('checkout')
+    
+    print(famount,'0000000====fffffffffffff======-----')
+    
+    if c_amount:
+
+        famount=famount-c_amount
+        print(famount,'======================')
 
     razoramount=int(famount*100)
     client=razorpay.Client(auth=(settings.RAZOR_KEY_ID,settings.RAZOR_KEY_SECRET))
     data={'amount':razoramount,"currency":"INR","receipt":"order_rcptid_12"}
     payment_response=client.order.create(data=data)
-    print(payment_response)
     order_id=payment_response['id']
     order_status=payment_response['status']
     if order_status == 'created':
@@ -490,7 +546,8 @@ def checkout(request):
         )
         payment.save()
     email=request.user.email
-    context={'cart':cart,'famount':famount,'razoramount':razoramount,'email':email,'payment':payment,'profile':profile}
+    print()
+    context={'cart':cart,'famount':famount,'razoramount':razoramount,'email':email,'payment':payment,'profile':profile,'coupon':coupon,'i':i}
     return render(request,'checkout.html',context)
 
 
